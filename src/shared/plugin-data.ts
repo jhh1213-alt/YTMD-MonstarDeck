@@ -2,7 +2,7 @@ import VERSION from "../version";
 
 export class PluginData {
     public static APP_ID = "fun-shiro-ytmd";
-    public static APP_NAME = "MonsterDeck YTMD Connector";
+    public static APP_NAME = "Monstar Daeck YTMD Connector";
     public static APP_VERSION = VERSION;
     public static DEFAULT_HOST = "127.0.0.1";
     public static DEFAULT_PORT = 26538;
