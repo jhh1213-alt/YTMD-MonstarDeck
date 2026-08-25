@@ -1,7 +1,7 @@
 import {KeyUpEvent, SDOnActionEvent, WillAppearEvent, WillDisappearEvent} from 'streamdeck-typescript';
 import {YTMD} from '../ytmd';
 import {DefaultAction} from './default.action';
-import {StateOutput, TrackState} from "ytmdesktop-ts-companion";
+import {StateOutput, TrackState} from "../api-server";
 
 export class SongInfoAction extends DefaultAction<SongInfoAction> {
     private events: { context: string, method: (state: StateOutput) => void }[] = [];

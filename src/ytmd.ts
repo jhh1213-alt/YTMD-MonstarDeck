@@ -11,7 +11,7 @@ import {VolChangeAction} from './actions/vol-change.action';
 import {ActionTypes} from './interfaces/enums';
 import {GlobalSettingsInterface} from './interfaces/global-settings.interface';
 import VERSION from "./version";
-import {CompanionConnector, LikeStatus, Settings} from "ytmdesktop-ts-companion";
+import {ApiServerConnector, LikeStatus, Settings} from "./api-server";
 import {PluginData} from "./shared/plugin-data";
 
 export class YTMD extends StreamDeckPluginHandler {
@@ -19,14 +19,14 @@ export class YTMD extends StreamDeckPluginHandler {
         appId: PluginData.APP_ID,
         appName: PluginData.APP_NAME,
         appVersion: PluginData.APP_VERSION,
-        host: "127.0.0.1",
-        port: 9863
+        host: PluginData.DEFAULT_HOST,
+        port: PluginData.DEFAULT_PORT
     }
 
     constructor() {
         super();
         try {
-            YTMD._COMPANION = new CompanionConnector(YTMD._DEFAULT_SETTINGS);
+            YTMD._COMPANION = new ApiServerConnector(YTMD._DEFAULT_SETTINGS);
             YTMD._COMPANION.socketClient.connect();
         } catch (e) {
             console.error(e);
@@ -46,9 +46,9 @@ export class YTMD extends StreamDeckPluginHandler {
         new PlayPlaylistAction(this, ActionTypes.PLAY_PLAYLIST);
     }
 
-    private static _COMPANION: CompanionConnector;
+    private static _COMPANION: ApiServerConnector;
 
-    public static get COMPANION(): CompanionConnector {
+    public static get COMPANION(): ApiServerConnector {
         return this._COMPANION;
     }
 
@@ -59,8 +59,8 @@ export class YTMD extends StreamDeckPluginHandler {
                 appId: PluginData.APP_ID,
                 appName: PluginData.APP_NAME,
                 appVersion: VERSION,
-                host: settings.host,
-                port: parseInt(settings.port),
+                host: PluginData.normalizeHost(settings.host),
+                port: PluginData.parsePort(settings.port),
                 token: settings.token
             };
         } else {

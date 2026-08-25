@@ -1,4 +1,4 @@
-import {ErrorOutput, SocketState} from "ytmdesktop-ts-companion";
+import {isErrorOutput, SocketState} from "../../api-server";
 import {YTMDPi} from "../../ytmd-pi";
 import {PluginData} from "../../shared/plugin-data";
 import {GlobalSettingsInterface} from "../../interfaces/global-settings.interface";
@@ -6,41 +6,48 @@ import {getCompanionConnector} from "../services/companion-singleton";
 
 export class GlobalSettingsPi {
     private authToken: string = '';
+    private settingsLoaded = false;
     private static socketListenersAttached = false;
     private static lastSettingsKey = '';
 
     constructor(private pi: YTMDPi) {
         this.pi.globalAuthButtonElement.onclick = () => this.startAuthorization();
         this.pi.globalSaveElement.onclick = () => this.saveSettings();
+        this.pi.globalHostElement.addEventListener('change', () => this.saveSettingsIfLoaded());
+        this.pi.globalPortElement.addEventListener('change', () => this.saveSettingsIfLoaded());
+        this.pi.globalHostElement.addEventListener('blur', () => this.saveSettingsIfLoaded());
+        this.pi.globalPortElement.addEventListener('blur', () => this.saveSettingsIfLoaded());
         this.pi.requestGlobalSettings();
     }
 
     public newGlobalSettingsReceived(): void {
-        let settings = this.pi.settingsManager.getGlobalSettings<GlobalSettingsInterface>();
+        let settings = this.pi.settingsManager.getGlobalSettings<GlobalSettingsInterface>() as GlobalSettingsInterface;
         if (Object.keys(settings).length < 2)
-            settings = {host: '127.0.0.1', port: '9863', token: ''};
+            settings = {host: PluginData.DEFAULT_HOST, port: String(PluginData.DEFAULT_PORT), token: ''};
 
-        const {
-            host = '127.0.0.1',
-            port = '9863',
-            token = '',
-        } = settings as GlobalSettingsInterface;
+        const host = PluginData.normalizeHost(settings.host);
+        const port = String(PluginData.parsePort(settings.port));
+        const token = settings.token ?? '';
 
-        this.pi.globalHostElement.value = host;
-        this.pi.globalPortElement.value = port;
+        if (document.activeElement !== this.pi.globalHostElement) {
+            this.pi.globalHostElement.value = host;
+        }
+        if (document.activeElement !== this.pi.globalPortElement) {
+            this.pi.globalPortElement.value = port;
+        }
         this.authToken = token;
+        this.settingsLoaded = true;
 
         this.setAuthStatusMessage(
             token ? this.pi.getLangString("AUTH_STATUS_CONNECTED") : this.pi.getLangString("AUTH_STATUS_NOT_CONNECTED"),
             token ? 'green' : 'red'
         );
-        this.pi.globalSettingsDetailsElement.open = !token;
         this.ensureSocketClient(host, port, token);
         this.refreshConnectionStatus();
     }
 
     private async refreshConnectionStatus() {
-        const settings = this.pi.settingsManager.getGlobalSettings<GlobalSettingsInterface>();
+        const settings = this.pi.settingsManager.getGlobalSettings<GlobalSettingsInterface>() as GlobalSettingsInterface;
         if (!settings?.token) {
             this.setConnectionStatus(
                 this.pi.getLangString("CONNECTION_STATUS_AUTH_REQUIRED"),
@@ -72,8 +79,9 @@ export class GlobalSettingsPi {
     }
 
     private ensureSocketClient(host: string, port: string, token: string) {
-        const normalizedHost = host === 'localhost' ? '127.0.0.1' : host;
-        const settingsKey = `${normalizedHost}:${port}:${token ?? ''}`;
+        const normalizedHost = PluginData.normalizeHost(host);
+        const normalizedPort = PluginData.parsePort(port);
+        const settingsKey = `${normalizedHost}:${normalizedPort}:${token ?? ''}`;
         const connector = getCompanionConnector();
         if (GlobalSettingsPi.lastSettingsKey !== settingsKey) {
             connector.settings = {
@@ -81,7 +89,7 @@ export class GlobalSettingsPi {
                 appName: PluginData.APP_NAME,
                 appVersion: PluginData.APP_VERSION,
                 host: normalizedHost,
-                port: parseInt(port),
+                port: normalizedPort,
                 token
             };
         }
@@ -109,9 +117,13 @@ export class GlobalSettingsPi {
             });
             connector.socketClient.addErrorListener((error: any) => {
                 this.pi.logMessage(`Connection status check failed: ${JSON.stringify(error)}`);
-                if (error satisfies ErrorOutput && error.statusCode === 429) {
+                if (isErrorOutput(error) && error.statusCode === 429) {
                     const seconds = this.getRetrySeconds(error.message);
                     this.setConnectionStatus(this.pi.getLangString("CONNECTION_STATUS_RATE_LIMIT", {seconds}), 'orange');
+                    return;
+                }
+                if (error instanceof Error && error.message === 'websocket error') {
+                    this.setConnectionStatus(this.pi.getLangString("CONNECTION_STATUS_DISCONNECTED"), 'red');
                     return;
                 }
                 this.setConnectionStatus(this.pi.getLangString("CONNECTION_STATUS_DISCONNECTED"), 'red');
@@ -130,9 +142,10 @@ export class GlobalSettingsPi {
         try {
             this.setAuthStatusMessage(this.pi.getLangString("AUTH_STATUS_CONNECTING"), 'yellow');
 
-            let host = this.pi.globalHostElement.value;
-            const port = this.pi.globalPortElement.value;
-            if (host === 'localhost') host = '127.0.0.1';
+            const host = PluginData.normalizeHost(this.pi.globalHostElement.value);
+            const port = PluginData.parsePort(this.pi.globalPortElement.value);
+            this.pi.globalHostElement.value = host;
+            this.pi.globalPortElement.value = String(port);
 
             const connector = getCompanionConnector();
             connector.settings = {
@@ -140,21 +153,14 @@ export class GlobalSettingsPi {
                 appName: PluginData.APP_NAME,
                 appVersion: PluginData.APP_VERSION,
                 host,
-                port: parseInt(port)
+                port
             };
 
-            const authCode = await connector.restClient.getAuthCode();
-            this.setAuthStatusMessage(this.pi.getLangString("AUTH_STATUS_AUTHORIZING"), 'yellow');
-            if (!authCode.code) {
-                this.setAuthStatusMessage(this.pi.getLangString("AUTH_STATUS_ERROR"), 'red');
-                return;
-            }
-
-            this.pi.globalAuthStatusElement.innerText = this.pi.getLangString("AUTH_CODE_STATUS", {
-                code: authCode.code,
-                compare: this.pi.getLangString("AUTH_CODE_COMPARE")
-            });
-            const authToken = await connector.restClient.getAuthToken(authCode.code);
+            this.setAuthStatusMessage(
+                `${this.pi.getLangString("AUTH_STATUS_AUTHORIZING")}\n${this.pi.getLangString("AUTH_CODE_COMPARE")}`,
+                'yellow'
+            );
+            const authToken = await connector.restClient.requestAuth();
 
             if (authToken.token) {
                 this.authToken = authToken.token;
@@ -171,7 +177,7 @@ export class GlobalSettingsPi {
     private authErrorCatched(err: any) {
         this.pi.logMessage(`Auth error: ${JSON.stringify(err)}`);
         let msg = "";
-        if (err satisfies ErrorOutput) {
+        if (isErrorOutput(err)) {
             msg = err.message;
         } else {
             msg = JSON.stringify(err);
@@ -184,13 +190,18 @@ export class GlobalSettingsPi {
         this.pi.globalSettingsDetailsElement.open = true;
     }
 
+    private saveSettingsIfLoaded() {
+        if (!this.settingsLoaded) return;
+        this.saveSettings();
+    }
+
     private saveSettings() {
-        let host = this.pi.globalHostElement.value,
-            port = this.pi.globalPortElement.value;
+        const host = PluginData.normalizeHost(this.pi.globalHostElement.value);
+        const port = PluginData.parsePort(this.pi.globalPortElement.value);
+        this.pi.globalHostElement.value = host;
+        this.pi.globalPortElement.value = String(port);
 
-        if (host == 'localhost') host = '127.0.0.1';
-
-        this.pi.settingsManager.setGlobalSettings({host, port, token: this.authToken});
-        this.ensureSocketClient(host, port, this.authToken);
+        this.pi.settingsManager.setGlobalSettings({host, port: String(port), token: this.authToken});
+        this.ensureSocketClient(host, String(port), this.authToken);
     }
 }

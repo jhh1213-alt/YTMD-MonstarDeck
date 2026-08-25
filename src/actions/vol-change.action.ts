@@ -1,7 +1,7 @@
 import {KeyDownEvent, KeyUpEvent, SDOnActionEvent, WillAppearEvent, WillDisappearEvent, DialRotateEvent, DialUpEvent} from 'streamdeck-typescript';
 import {YTMD} from '../ytmd';
 import {DefaultAction} from './default.action';
-import {StateOutput} from "ytmdesktop-ts-companion";
+import {StateOutput} from "../api-server";
 
 export class VolChangeAction extends DefaultAction<VolChangeAction> {
     private keyDown: boolean = false;

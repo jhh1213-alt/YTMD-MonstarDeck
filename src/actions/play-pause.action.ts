@@ -11,7 +11,7 @@ import {
 import {YTMD} from '../ytmd';
 import {DefaultAction} from './default.action';
 import {PlayPauseSettings} from "../interfaces/context-settings.interface";
-import {SocketState, StateOutput, TrackState} from "ytmdesktop-ts-companion";
+import {SocketState, StateOutput, TrackState} from "../api-server";
 
 export class PlayPauseAction extends DefaultAction<PlayPauseAction> {
     private trackState: TrackState = TrackState.UNKNOWN;

@@ -26,22 +26,25 @@
             <strong id="globalConnectionStatus" class="connection-status-value" data-i18n="CONNECTION_STATUS_CHECKING">Checking...</strong>
         </div>
     </div>
-    <details id="globalSettingsDetails" class="message">
+    <div class="sdpi-item">
+        <div class="sdpi-item-label host-label" data-i18n="HOST">Host</div>
+        <input class="sdpi-item-value" type="text" id="globalHost" value="127.0.0.1">
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label port-label" data-i18n="PORT">Port</div>
+        <input class="sdpi-item-value" type="number" id="globalPort" value="26538" min="1" max="65535" step="1">
+    </div>
+    <div style="padding: 5px;" class="port-help-label" data-i18n="PORT_HELP">
+        Must match the API Server port in YouTube Music Desktop (default 26538).
+    </div>
+    <div class="sdpi-item">
+        <button class="sdpi-item-value save-label" id="globalSave" data-i18n="SAVE">Save</button>
+    </div>
+    <details id="globalSettingsDetails" class="message" open>
         <summary class="global-settings-title" data-i18n="GLOBAL_SETTINGS_TITLE">Connection Settings</summary>
         <div class="sdpi-item">
             <button class="sdpi-item-value auth-button-label" id="globalAuthButton" data-i18n="AUTH_BUTTON">Authorize</button>
             <br>
-        </div>
-        <div class="sdpi-item">
-            <div class="sdpi-item-label host-label" data-i18n="HOST">Host</div>
-            <input class="sdpi-item-value" type="text" id="globalHost" value="127.0.0.1">
-        </div>
-        <div class="sdpi-item">
-            <div class="sdpi-item-label port-label" data-i18n="PORT">Port</div>
-            <input class="sdpi-item-value" type="number" id="globalPort" value="9863">
-        </div>
-        <div class="sdpi-item">
-            <button class="sdpi-item-value save-label" id="globalSave" data-i18n="SAVE">Save</button>
         </div>
     </details>
 </div>
@@ -90,7 +93,7 @@
     <div class="sdpi-item">
         <div class="sdpi-item-label playlist-source-label" data-i18n="PLAYLIST_SOURCE">Playlist Source</div>
         <div class="sdpi-item-value playlist-source-help" data-i18n="PLAYLIST_SOURCE_HELP">
-            Use one option below. If Playlist URL is set, it takes priority over the dropdown.
+            Paste a YouTube Music playlist URL that includes a list parameter.
         </div>
     </div>
     <div class="sdpi-item">

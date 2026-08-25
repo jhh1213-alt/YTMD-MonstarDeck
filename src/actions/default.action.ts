@@ -6,13 +6,13 @@ import {
     WillDisappearEvent,
 } from 'streamdeck-typescript';
 import { YTMD } from '../ytmd';
-import {RestClient, SocketClient} from "ytmdesktop-ts-companion";
+import {RestClient, StateClient} from "../api-server";
 
 export abstract class DefaultAction<Instance> extends StreamDeckAction<
     YTMD,
     Instance
 > {
-    socket: SocketClient;
+    socket: StateClient;
     rest: RestClient;
 
     protected constructor(plugin: YTMD, actionName: string) {

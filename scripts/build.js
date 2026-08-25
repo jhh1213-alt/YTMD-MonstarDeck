@@ -1,20 +1,19 @@
 const esbuild = require('esbuild');
 const fs = require('fs');
-// Create release folder
+const path = require('path');
+
+const PLUGIN_DIR_NAME = 'fun.hlabs.ytmd.sdPlugin';
+const outputDir = path.join('build', PLUGIN_DIR_NAME);
+
 console.log('Creating release folder');
 if (fs.existsSync('build')) {
     fs.rmSync('build', {recursive: true, force: true});
 }
 fs.mkdirSync('build');
 
-// Create plugin folder
 console.log('Creating plugin folder');
-if (fs.existsSync('build/fun.shiro.ytmd.sdPlugin')) {
-    fs.rmSync('build/fun.shiro.ytmd.sdPlugin', {recursive: true, force: true});
-}
-fs.mkdirSync('build/fun.shiro.ytmd.sdPlugin');
+fs.mkdirSync(outputDir);
 
-// Build plugin
 console.log('Building plugin');
 
 async function bundle(entryPoint, outFile) {
@@ -31,13 +30,11 @@ async function bundle(entryPoint, outFile) {
 
 async function main() {
     await Promise.all([
-        bundle('src/ytmd-pi.ts', 'build/fun.shiro.ytmd.sdPlugin/bundle-pi.js'),
-        bundle('src/ytmd.ts', 'build/fun.shiro.ytmd.sdPlugin/bundle.js')
+        bundle('src/ytmd-pi.ts', path.join(outputDir, 'bundle-pi.js')),
+        bundle('src/ytmd.ts', path.join(outputDir, 'bundle.js'))
     ]);
 
-    // Copy files
     console.log('Copying files');
-    const outputDir = 'build/fun.shiro.ytmd.sdPlugin';
     const rootEntries = fs.readdirSync('.');
 
     const excludedJson = new Set([
@@ -50,19 +47,20 @@ async function main() {
 
     rootEntries
         .filter((name) => name.endsWith('.json') && !excludedJson.has(name))
-        .forEach((name) => fs.copyFileSync(name, `${outputDir}/${name}`));
+        .forEach((name) => fs.copyFileSync(name, path.join(outputDir, name)));
 
     rootEntries
         .filter((name) => name.endsWith('.html'))
-        .forEach((name) => fs.copyFileSync(name, `${outputDir}/${name}`));
+        .forEach((name) => fs.copyFileSync(name, path.join(outputDir, name)));
 
     rootEntries
         .filter((name) => name.endsWith('.css'))
-        .forEach((name) => fs.copyFileSync(name, `${outputDir}/${name}`));
+        .forEach((name) => fs.copyFileSync(name, path.join(outputDir, name)));
 
-    fs.cpSync('icons', 'build/fun.shiro.ytmd.sdPlugin/icons', {recursive: true});
+    if (fs.existsSync('icons')) {
+        fs.cpSync('icons', path.join(outputDir, 'icons'), {recursive: true});
+    }
 
-    // Done building plugin folder, check the build directory
     console.log('Done building plugin folder, check the build directory');
 }
 

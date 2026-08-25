@@ -2,6 +2,7 @@ export interface LocalizationInterface {
     PI: {
         HOST: string;
         PORT: string;
+        PORT_HELP: string;
         VOLUME_STEPS: string;
         SAVE: string;
         AUTOMATIC_SAVE: string;
@@ -31,6 +32,7 @@ export interface LocalizationInterface {
         PLAYLIST_SOURCE: string;
         PLAYLIST_SOURCE_HELP: string;
         PLAYLIST_REFRESH: string;
+        PLAYLIST_LIST_UNSUPPORTED: string;
         PLAYLIST_ERROR_TITLE: string;
         PLAYLIST_ERROR_RATE_LIMIT: string;
         PLAYLIST_SELECT: string;

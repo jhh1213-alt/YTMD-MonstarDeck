@@ -2,7 +2,7 @@ import {KeyUpEvent, SDOnActionEvent, WillAppearEvent, WillDisappearEvent,} from 
 import {ActionTypes} from '../interfaces/enums';
 import {YTMD} from '../ytmd';
 import {DefaultAction} from './default.action';
-import {RepeatMode, StateOutput} from "ytmdesktop-ts-companion";
+import {RepeatMode, StateOutput} from "../api-server";
 
 export class RepeatAction extends DefaultAction<RepeatAction> {
     private icons = {

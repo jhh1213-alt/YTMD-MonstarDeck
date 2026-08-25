@@ -1,7 +1,7 @@
 import {KeyUpEvent, SDOnActionEvent, StateType, WillAppearEvent, WillDisappearEvent,} from 'streamdeck-typescript';
 import {YTMD} from '../ytmd';
 import {DefaultAction} from './default.action';
-import {StateOutput} from "ytmdesktop-ts-companion";
+import {StateOutput} from "../api-server";
 
 export class MuteAction extends DefaultAction<MuteAction> {
     private events: { context: string, method: (state: StateOutput) => void }[] = [];

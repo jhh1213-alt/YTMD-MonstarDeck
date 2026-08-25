@@ -2,7 +2,7 @@ import {KeyUpEvent, SDOnActionEvent, WillAppearEvent, WillDisappearEvent} from '
 import {YTMD} from '../ytmd';
 import {DefaultAction} from './default.action';
 import {PlaylistSettings} from "../interfaces/context-settings.interface";
-import {ErrorOutput} from "ytmdesktop-ts-companion";
+import {isErrorOutput} from "../api-server";
 
 export class PlayPlaylistAction extends DefaultAction<PlayPlaylistAction> {
     constructor(
@@ -59,7 +59,7 @@ export class PlayPlaylistAction extends DefaultAction<PlayPlaylistAction> {
         } catch (reason) {
             console.error(reason);
             let message = JSON.stringify(reason);
-            if (reason satisfies ErrorOutput) {
+            if (isErrorOutput(reason)) {
                 message = reason.message;
             }
             this.plugin.logMessage(`Error while starting playlist. context: ${JSON.stringify(context)}, error: ${message}`);

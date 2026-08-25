@@ -1,7 +1,7 @@
 import {KeyUpEvent, SDOnActionEvent, StateType, WillAppearEvent, WillDisappearEvent,} from 'streamdeck-typescript';
 import {YTMD} from '../ytmd';
 import {DefaultAction} from './default.action';
-import {LikeStatus, StateOutput} from 'ytmdesktop-ts-companion';
+import {LikeStatus, StateOutput} from '../api-server';
 
 export class LikeDislikeAction extends DefaultAction<LikeDislikeAction> {
     private events: { context: string, method: (state: StateOutput) => void }[] = [];
