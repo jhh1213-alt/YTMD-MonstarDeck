@@ -1,5 +1,3 @@
-![Thumbnail](assets/thumbnail/ytmdc-thumbnail.png)
-
 # YTMD Monstar Daeck Plugin
 
 Control [Pear Desktop](https://github.com/pear-devs/pear-desktop) from Monstar Daeck (Stream Deck SDK compatible).
